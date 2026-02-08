@@ -296,8 +296,8 @@ RegisterCommand('+lean_left', function() isLeanLeftPressed = true end, false)
 RegisterCommand('-lean_left', function() isLeanLeftPressed = false end, false)
 RegisterCommand('+lean_right', function() isLeanRightPressed = true end, false)
 RegisterCommand('-lean_right', function() isLeanRightPressed = false end, false)
-RegisterKeyMapping('+lean_left', 'Tactical Lean Left', 'keyboard', 'Q')
-RegisterKeyMapping('+lean_right', 'Tactical Lean Right', 'keyboard', 'E')
+RegisterKeyMapping('+lean_left', 'Tactical Lean Left', 'keyboard', Config.Lean.LKey)
+RegisterKeyMapping('+lean_right', 'Tactical Lean Right', 'keyboard', Config.Lean.RKey)
 
 CreateThread(function()
     while true do
@@ -314,4 +314,5 @@ CreateThread(function()
             Wait(200)
         end
     end
+
 end)
