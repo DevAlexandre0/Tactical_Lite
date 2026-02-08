@@ -22,7 +22,10 @@ Config.Lean = {
             high = { dict = "anim@highlow_high_lean", clip = "high_lean_clip" },
             low = { dict = "anim@highlow_low_lean", clip = "low_lean_clip" }
         }
-    }
+    },
+
+    LKey = 'Q',
+    RKey = 'E',
 }
 
 -- ===========================
@@ -42,3 +45,4 @@ Config.QuickThrow = {
         { item = 'WEAPON_FLARE',        hash = `WEAPON_FLARE`,        speed = 40.0, label = "Flare" },
     }
 }
+
