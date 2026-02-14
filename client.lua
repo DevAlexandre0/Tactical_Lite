@@ -85,6 +85,12 @@ function Lean.Update(ped, isAiming, qPressed, ePressed)
         return 
     end
 
+    -- Disable in vehicle
+    if IsPedInAnyVehicle(ped, false) then
+        if Lean.stance ~= 0 then CleanupCameraImmediate() end
+        return
+    end
+
     if Lean.stance > 0 then DrawTacticalReticle() end
     local isCrouching = IsPedDucking(ped)
     local targetMode = "NONE"
@@ -282,6 +288,16 @@ local function ProcessQuickThrow()
     LocalPlayer.state:set('isTacticalThrowing', true, true)
 
     CreateThread(function()
+        -- Validate with server FIRST before doing anything
+        local canThrow = lib.callback.await('tactical_lite:canThrow', false, throwable.item)
+        
+        if not canThrow then
+            lib.notify({ type = 'error', description = 'ไม่สามารถขว้างได้!' })
+            Grenade.isThrowing = false
+            LocalPlayer.state:set('isTacticalThrowing', false, true)
+            return
+        end
+
         RequestAnimDict(ANIM_DICT)
         RequestWeaponAsset(throwable.hash)
         while not (HasAnimDictLoaded(ANIM_DICT) and HasWeaponAssetLoaded(throwable.hash)) do Wait(10) end
@@ -290,7 +306,6 @@ local function ProcessQuickThrow()
         Wait(400) -- Wait for throw point
 
         FireNetworkedProjectile(ped, throwable.hash, throwable.speed)
-        TriggerServerEvent('tactical_lite:throwItem', throwable.item)
 
         Wait(200)
         StopAnimTask(ped, ANIM_DICT, ANIM_NAME, 1.0)
@@ -318,9 +333,15 @@ RegisterKeyMapping('+lean_right', 'Tactical Lean Right', 'keyboard', Config.Lean
 CreateThread(function()
     while true do
         local ped = PlayerPedId()
+        local inVehicle = IsPedInAnyVehicle(ped, false)
         local isAiming = IsPlayerFreeAiming(PlayerId()) or IsControlPressed(0, 25)
         
-        if isAiming then
+        if inVehicle then
+            if Lean.stance ~= 0 then
+                Lean.Update(ped, false, false, false)
+            end
+            Wait(500)
+        elseif isAiming then
             Lean.Update(ped, true, isLeanLeftPressed, isLeanRightPressed)
             Wait(0)
         else
