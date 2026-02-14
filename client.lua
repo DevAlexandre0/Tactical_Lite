@@ -246,13 +246,19 @@ local function FireNetworkedProjectile(ped, hash, speed)
     ShootSingleBulletBetweenCoords(
         finalSpawn.x, finalSpawn.y, finalSpawn.z,
         finalTarget.x, finalTarget.y, finalTarget.z,
-        0, true, hash, ped, true, false, speed
+        100, true, hash, ped, true, true, speed
     )
+end
+
+local function CanUseTactical()
+    local ped = PlayerPedId()
+    if IsPedInAnyVehicle(ped, false) then return false end
+    return IsPlayerFreeAiming(PlayerId())
 end
 
 local function ProcessQuickThrow()
     local ped = PlayerPedId()
-    if Grenade.isThrowing or not Config.QuickThrow.Enabled then return end
+    if Grenade.isThrowing or not Config.QuickThrow.Enabled or not CanUseTactical() then return end
     if not IsPlayerFreeAiming(PlayerId()) or IsPedInAnyVehicle(ped, false) then return end
 
     local throwable = GetBestThrowable()
@@ -316,3 +322,4 @@ CreateThread(function()
     end
 
 end)
+
