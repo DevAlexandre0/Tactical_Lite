@@ -40,8 +40,8 @@ Config.QuickThrow = {
         { item = 'WEAPON_MOLOTOV',      hash = `WEAPON_MOLOTOV`,      speed = 30.0, label = "Molotov" },
         { item = 'WEAPON_SMOKEGRENADE', hash = `WEAPON_SMOKEGRENADE`, speed = 35.0, label = "Smoke Grenade" },
         -- Addon Support
-        { item = 'weapon_flashbang', hash = `WEAPON_FLASHBANG`, speed = 35.0, label = "Flashbang" }, 
-        { item = 'weapon_smok2grenade', hash = `WEAPON_SMOK2GRENADE`, speed = 35.0, label = "Smoke Grenade" },
+        { item = 'WEAPON_FLASHBANG', hash = `WEAPON_FLASHBANG`, speed = 35.0, label = "Flashbang" }, 
+        { item = 'WEAPON_SMOK2GRENADE', hash = `WEAPON_SMOK2GRENADE`, speed = 35.0, label = "Smoke Grenade" },
         -- Placeholder for future addons
         -- { item = 'item_name', hash = `WEAPON_HASH`, speed = 30.0, label = "Custom" },
         
