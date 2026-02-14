@@ -232,7 +232,14 @@ local ANIM_NAME = "aim_throw_m"
 local function GetBestThrowable()
     for _, cfg in ipairs(Config.QuickThrow.Throwables) do
         local count = exports.ox_inventory:Search('count', cfg.item)
-        if count > 0 then return cfg end
+        local itemCount = 0
+        if type(count) == "table" then
+            for _, v in pairs(count) do itemCount = itemCount + v end
+        else
+            itemCount = count or 0
+        end
+
+        if itemCount > 0 then return cfg end
     end
     return nil
 end
@@ -272,6 +279,8 @@ local function ProcessQuickThrow()
     Grenade.isThrowing = true
     Grenade.lastThrowTime = now
 
+    LocalPlayer.state:set('isTacticalThrowing', true, true)
+
     CreateThread(function()
         RequestAnimDict(ANIM_DICT)
         RequestWeaponAsset(throwable.hash)
@@ -286,6 +295,7 @@ local function ProcessQuickThrow()
         Wait(200)
         StopAnimTask(ped, ANIM_DICT, ANIM_NAME, 1.0)
         Grenade.isThrowing = false
+        LocalPlayer.state:set('isTacticalThrowing', false, true)
         RemoveAnimDict(ANIM_DICT)
     end)
 end
@@ -322,4 +332,3 @@ CreateThread(function()
     end
 
 end)
-
