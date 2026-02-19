@@ -1,12 +1,21 @@
 local QBCore = exports['qb-core']:GetCoreObject()
-RegisterNetEvent('tactical_lite:throwItem', function(itemName)
-    local src = source
-    local Player = QBCore.Functions.GetPlayer(src)
-    if not Player then return end
+lib.callback.register('tactical_lite:canThrow', function(source, itemName)
+    if not itemName or type(itemName) ~= 'string' then return false end
+
+    local isValid = false
+    for _, cfg in ipairs(Config.QuickThrow.Throwables) do
+        if cfg.item == itemName then
+            isValid = true; break
+        end
+    end
+    if not isValid then return false end
+
+    local Player = QBCore.Functions.GetPlayer(source)
+    if not Player then return false end
 
     local item = Player.Functions.GetItemByName(itemName)
     if item and item.amount > 0 then
-        Player.Functions.RemoveItem(itemName, 1)
-        TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[itemName], "remove")
+        return Player.Functions.RemoveItem(itemName, 1)
     end
+    return false
 end)

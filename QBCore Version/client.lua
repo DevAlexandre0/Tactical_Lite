@@ -14,7 +14,7 @@ end
 local function LerpTime(start, target, startTime, duration)
     local elapsed = GetGameTimer() - startTime
     local t = math.min(elapsed / duration, 1.0)
-    t = t * t * (3.0 - 2.0 * t) 
+    t = t * t * (3.0 - 2.0 * t)
     return start + (target - start) * t
 end
 
@@ -37,10 +37,13 @@ local function GetCameraPositionX()
     local viewMode = GetFollowPedCamViewMode()
     local multiplier = Lean.PeekingPosition == 1 and 1.0 or -1.0
     local extraRight = Lean.PeekingPosition == 1 and Config.Lean.TPV.extraRightOffset or 0
-    
-    if viewMode == 0 then return (Config.Lean.TPV.lateralOffsetClose + extraRight) * multiplier
-    elseif viewMode == 1 then return (Config.Lean.TPV.lateralOffsetMedium + extraRight) * multiplier
-    elseif viewMode == 2 then return (Config.Lean.TPV.lateralOffsetFar + extraRight) * multiplier
+
+    if viewMode == 0 then
+        return (Config.Lean.TPV.lateralOffsetClose + extraRight) * multiplier
+    elseif viewMode == 1 then
+        return (Config.Lean.TPV.lateralOffsetMedium + extraRight) * multiplier
+    elseif viewMode == 2 then
+        return (Config.Lean.TPV.lateralOffsetFar + extraRight) * multiplier
     end
     return 0.0
 end
@@ -56,7 +59,8 @@ end
 
 local function CheckCollision(ped, targetPos)
     local pedPos = GetEntityCoords(ped)
-    local raycast = StartShapeTestCapsule(pedPos.x, pedPos.y, pedPos.z, targetPos.x, targetPos.y, targetPos.z, 0.2, 511, ped, 4)
+    local raycast = StartShapeTestCapsule(pedPos.x, pedPos.y, pedPos.z, targetPos.x, targetPos.y, targetPos.z, 0.2, 511,
+        ped, 4)
     local _, hit = GetShapeTestResult(raycast)
     return hit == 1
 end
@@ -83,7 +87,7 @@ function Lean.Update(ped, isAiming, qPressed, ePressed)
     local viewMode = GetFollowPedCamViewMode()
     if viewMode == 4 then -- Disable in First Person
         if Lean.stance ~= 0 then CleanupCameraImmediate() end
-        return 
+        return
     end
 
     -- Disable in vehicle
@@ -124,9 +128,12 @@ function Lean.Update(ped, isAiming, qPressed, ePressed)
                 Lean.stance = 4
             end
         end
-        
-        if Lean.PeekingPosition == 1 then targetMode = "RIGHT" 
-        elseif Lean.PeekingPosition == 2 then targetMode = "LEFT" end
+
+        if Lean.PeekingPosition == 1 then
+            targetMode = "RIGHT"
+        elseif Lean.PeekingPosition == 2 then
+            targetMode = "LEFT"
+        end
     end
 
     -- State Sync (OneSync)
@@ -140,71 +147,68 @@ function Lean.Update(ped, isAiming, qPressed, ePressed)
         local coords = GetGameplayCamCoord()
         local rot = GetGameplayCamRot(2)
         local pedCoords = GetEntityCoords(ped)
-        
+
         initialCamCoords = coords
         local posTrans = GetCameraPositionTranslation(coords, pedCoords)
         targetLeanCoords = GetOffsetFromEntityInWorldCoords(ped, posTrans.x, posTrans.y, posTrans.z)
-        
+
         if not Lean.cam then
-            Lean.cam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", coords.x, coords.y, coords.z, rot.x, rot.y, rot.z, GetGameplayCamFov(), true, 2)
+            Lean.cam = CreateCamWithParams("DEFAULT_SCRIPTED_CAMERA", coords.x, coords.y, coords.z, rot.x, rot.y, rot.z,
+                GetGameplayCamFov(), true, 2)
         end
         SetCamActive(Lean.cam, true)
         RenderScriptCams(true, false, 0, true, true)
         Lean.lastTickTime, Lean.stance = GetGameTimer(), 2
-
     elseif Lean.stance == 2 then -- LERPING
         local lerpT = LerpTime(0.0, 1.0, Lean.lastTickTime, 333)
         startLerpRot = lerpT * (Lean.PeekingPosition == 1 and 1.0 or -1.0) * Config.Lean.TPV.cameraRoll
-        
+
         local lX = initialCamCoords.x + (targetLeanCoords.x - initialCamCoords.x) * lerpT
         local lY = initialCamCoords.y + (targetLeanCoords.y - initialCamCoords.y) * lerpT
         local lZ = initialCamCoords.z + (targetLeanCoords.z - initialCamCoords.z) * lerpT
-        
+
         activeLeanCoords = vector3(lX, lY, lZ)
         SetCamCoord(Lean.cam, lX, lY, lZ)
         SetCamRot(Lean.cam, GetGameplayCamRot(2).x, GetGameplayCamRot(2).y + startLerpRot, GetGameplayCamRot(2).z, 2)
         SetCamFov(Lean.cam, GetGameplayCamFov())
-        
-        if lerpT >= 0.99 then Lean.lastTickTime, Lean.stance = GetGameTimer(), 3 end
 
+        if lerpT >= 0.99 then Lean.lastTickTime, Lean.stance = GetGameTimer(), 3 end
     elseif Lean.stance == 3 then -- ACTIVE
         if Lean.PeekingPosition ~= 0 then
             local gameRot = GetGameplayCamRot(2)
             local gameCamCoord = GetGameplayCamCoord()
             local pedCoords = GetEntityCoords(ped)
-            
-            local posTrans = (not CamDidHit or not GameplayCameraDidHit) and GetCameraPositionTranslation(gameCamCoord, pedCoords) or vector3(0,0,0)
+
+            local posTrans = (not CamDidHit or not GameplayCameraDidHit) and
+                GetCameraPositionTranslation(gameCamCoord, pedCoords) or vector3(0, 0, 0)
             local offsetPos = GetOffsetFromEntityInWorldCoords(ped, posTrans.x, posTrans.y, posTrans.z)
-            
+
             activeLeanCoords = offsetPos
             SetCamCoord(Lean.cam, offsetPos.x, offsetPos.y, offsetPos.z)
             local roll = (Lean.PeekingPosition == 1 and 1.0 or -1.0) * Config.Lean.TPV.cameraRoll
             SetCamRot(Lean.cam, gameRot.x, gameRot.y + roll, gameRot.z, 2)
             SetCamFov(Lean.cam, GetGameplayCamFov())
-            
+
             CamDidHit = CheckCollision(ped, offsetPos)
             GameplayCameraDidHit = CheckCollision(ped, GetOffsetFromEntityInWorldCoords(ped, GetCameraPositionX(), 0, 0))
         end
-
     elseif Lean.stance == 4 then -- ENDING
         sLerpRot = (Lean.PeekingPosition == 1 and 1.0 or -1.0) * Config.Lean.TPV.cameraRoll
         Lean.lastTickTime, Lean.stance = GetGameTimer(), 5
-
     elseif Lean.stance == 5 then -- REVERSING
         local lerpT = LerpTime(0.0, 1.0, Lean.lastTickTime, 333)
         reversLerpRot = sLerpRot * (1.0 - lerpT)
         local gameplayCam = GetGameplayCamCoord()
-        
+
         local lX = activeLeanCoords.x + (gameplayCam.x - activeLeanCoords.x) * lerpT
         local lY = activeLeanCoords.y + (gameplayCam.y - activeLeanCoords.y) * lerpT
         local lZ = activeLeanCoords.z + (gameplayCam.z - activeLeanCoords.z) * lerpT
-        
+
         SetCamCoord(Lean.cam, lX, lY, lZ)
         SetCamRot(Lean.cam, GetGameplayCamRot(2).x, GetGameplayCamRot(2).y + reversLerpRot, GetGameplayCamRot(2).z, 2)
         SetCamFov(Lean.cam, GetGameplayCamFov())
-        
-        if lerpT >= 0.99 then Lean.stance = 6 end
 
+        if lerpT >= 0.99 then Lean.stance = 6 end
     elseif Lean.stance == 6 then -- CLEANUP
         CleanupCameraImmediate()
     end
@@ -216,7 +220,7 @@ AddStateBagChangeHandler('TacticalLean', nil, function(bagName, key, value, _unu
     if not ply or ply == PlayerId() then return end
     local remotePed = GetPlayerPed(ply)
     if not DoesEntityExist(remotePed) then return end
-    
+
     if not value or value.mode == "NONE" then
         ClearPedSecondaryTask(remotePed)
     else
@@ -253,7 +257,7 @@ local function FireNetworkedProjectile(ped, hash, speed)
     local spawnPos = GetPedBoneCoords(ped, R_HAND_BONE, 0.0, 0.0, 0.0)
     local finalSpawn = spawnPos + (camDir * 0.8)
     local finalTarget = finalSpawn + (camDir * 50.0)
-    
+
     ShootSingleBulletBetweenCoords(
         finalSpawn.x, finalSpawn.y, finalSpawn.z,
         finalTarget.x, finalTarget.y, finalTarget.z,
@@ -270,7 +274,6 @@ end
 local function ProcessQuickThrow()
     local ped = PlayerPedId()
     if Grenade.isThrowing or not Config.QuickThrow.Enabled or not CanUseTactical() then return end
-    if not IsPlayerFreeAiming(PlayerId()) or IsPedInAnyVehicle(ped, false) then return end
 
     local throwable = GetBestThrowable()
     if not throwable then
@@ -288,7 +291,7 @@ local function ProcessQuickThrow()
     CreateThread(function()
         -- Validate with server FIRST before doing anything
         local canThrow = lib.callback.await('tactical_lite:canThrow', false, throwable.item)
-        
+
         if not canThrow then
             lib.notify({ type = 'error', description = 'ไม่สามารถขว้างได้!' })
             Grenade.isThrowing = false
@@ -333,7 +336,7 @@ CreateThread(function()
         local ped = PlayerPedId()
         local inVehicle = IsPedInAnyVehicle(ped, false)
         local isAiming = IsPlayerFreeAiming(PlayerId()) or IsControlPressed(0, 25)
-        
+
         -- Cleanup if in vehicle
         if inVehicle then
             if Lean.stance ~= 0 then
@@ -350,5 +353,4 @@ CreateThread(function()
             Wait(200)
         end
     end
-
 end)
